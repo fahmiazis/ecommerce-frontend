@@ -5,38 +5,21 @@ import Slider from '../components/Carousel'
 import SliderCat from '../components/Carcat'
 import {Container, Row, Col,
 Card, CardBody, CardTitle,
-CardSubtitle, CardImg, CardText} 
+CardSubtitle, CardImg, Spinner} 
 from 'reactstrap'
-import pol from "../img/pol.png"
-import star from '../img/star.png'
+import pol from "../assets/img/pol.png"
+import star from '../assets/img/star.png'
+
+import {connect} from 'react-redux'
+import home from '../redux/actions/home'
 
 class Home extends React.Component{
-    
-    constructor(props){
-        super(props)
-        this.state = {
-            data: [],
-            data1: []
-        }
-    }
-
-    async componentDidMount(){
-        await this.getData()
-    }
-    
-    getData = async()=>{
-        const {data} = await axios.get(`http://localhost:8080/product`)
-        this.setState({data: data.data}, async()=>{
-          await this.getData1()
-        })
-    }
-
-    getData1 = async()=>{
-        const {data} = await axios.get(`http://localhost:8080/product?page=2`)
-        this.setState({data1: data.data})
+    componentDidMount(){
+        this.props.getHome()
     }
 
     render(){
+        const {isLoading, data, isError, alertMsg} = this.props.home
         return(
             <>
                 <Navibar />
@@ -58,10 +41,10 @@ class Home extends React.Component{
                     <div className="text-secondary">You've never seen it before</div>
                 </div>
                     <Row>
-                        {this.state.data.map(item => {
+                    {!isLoading && !isError && data.length!==0 && data.map(item => {
                         return(
                         <Col sm={4} md={3}>
-                            <Card className="mt-3 mr-3">
+                            <Card className="mt-3 mr-3 shadow">
                                 <CardImg className="img-fluid" width="100%" src={pol} alt="pol"/>
                                <CardBody>
                                     <CardTitle>                                       
@@ -87,17 +70,17 @@ class Home extends React.Component{
                             </Card>
                         </Col>
                         )
-                        })}
+                        })}         
                     </Row>
                     <div className="mt-5 mb-5">
                         <div className="display-3">Popular</div>
                         <div className="text-secondary mt-2">Find clothes that are trending recently</div>
                     </div>
-                    <Row>
-                        {this.state.data1.map(item => {
-                        return(
+                    {/* <Row> */}
+                        {/* {this.state.data1.map(item => { */}
+                        {/* return(
                         <Col sm={4} md={3}>
-                            <Card className="mt-3 mr-3">
+                            <Card className="mt-3 mr-3 shadow">
                                 <CardImg className="img-fluid" width="100%" src={pol} alt="pol"/>
                                <CardBody>
                                     <CardTitle>                                       
@@ -123,13 +106,29 @@ class Home extends React.Component{
                             </Card>
                         </Col>
                         )
-                        })}
-                    </Row>
+                        })} */}
+                    {/* </Row> */}
                 </Container>
+            {isLoading && !isError && (
+                <div className="d-flex justify-content-center align-items-center">
+                    <Spinner color="danger"/>             
+                </div>
+            )}
+            {isError && alertMsg!=='' && (
+                <div className="d-flex justify-content-center align-items-center h3 text-danger">{alertMsg}</div>
+            )}
             </>
         )
     }
 
 }
 
-export default Home
+const mapStateToProps = state => ({
+    home: state.home
+  })
+  
+  const mapDispatchToProps = {
+    getHome: home.getProduct
+  }
+  
+  export default connect(mapStateToProps, mapDispatchToProps)(Home)
